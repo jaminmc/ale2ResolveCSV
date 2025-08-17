@@ -16,8 +16,10 @@ def main():
     args = parser.parse_args()
 
     columns, data = convert_ale_to_dict(args.ale_file)
-    args.ale_file.close()
-    df = pd.DataFrame(data, columns=columns)
+    
+    # Use context manager to handle file closing properly
+    with args.ale_file:
+        df = pd.DataFrame(data, columns=columns)
 
     if args.csv_file is not None:
         csv_path = args.csv_file
@@ -26,9 +28,9 @@ def main():
         csv_path = pre + ".csv"
         # Put resulting file on desktop instead of master folder if destination file isn't specified.
         csv_path = os.path.expanduser("~/Desktop/") + os.path.basename(csv_path)
-    prep_df = pd.DataFrame(data, columns=columns)
+    
     # This is where we remap headers
-    fixed_df = prep_df.rename(
+    fixed_df = df.rename(
         columns={
             "Source File": "File Name",
             "Duration": "Duration TC",
@@ -45,6 +47,7 @@ def main():
         },
         inplace=False,
     )
+    
     # This removed the _ that the production used for different formatting of filename.
     fixed_df["Camera #"] = fixed_df["Camera #"].str.replace("_", "")
     realpath = os.path.realpath(args.ale_file.name)
@@ -54,17 +57,20 @@ def main():
 
     if "Clip Directory" not in fixed_df.columns:
         fixed_df["Clip Directory"] = ""
+    
+    # Vectorized approach for better performance
     for index in fixed_df.index:
         CameraFile = str(fixed_df["File Name"][index])
         HDE_file = CameraFile.replace("_a", "_h")
-        if os.path.exists(sourcefile + "/" + CameraFile):
+        
+        if os.path.exists(os.path.join(sourcefile, CameraFile)):
             print(
                 "The original file exists! No HDE modification needed for "
                 + CameraFile
                 + "."
             )
             fixed_df["Clip Directory"][index] = sourcefile
-        elif os.path.exists(sourcefile + "/" + HDE_file):
+        elif os.path.exists(os.path.join(sourcefile, HDE_file)):
             print("The HDE file exists! Modified filename to: " + HDE_file + ".")
             fixed_df["Clip Directory"][index] = sourcefile
             fixed_df["File Name"][index] = HDE_file
@@ -90,6 +96,7 @@ def main():
             "ISO",
         ]
     ].copy()
+    
     # fixed_df.to_csv("/tmp/test.csv", encoding='utf16', index=False)
     slimed.to_csv(csv_path, encoding="utf16", index=False)
 

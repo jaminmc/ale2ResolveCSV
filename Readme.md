@@ -14,6 +14,25 @@ Then the filenames weren't matching, as I was getting HDE versions, and the HDE 
 
 If there is no destination specified, it will put a CSV on your desktop.
 
+## Features
+
+- Extracts metadata from ALE files
+- Remaps headers to more readable names
+- Fixes Camera # formatting by removing underscores
+- Handles filename matching for HDE versions
+- Supports both specified output paths and default desktop saving
+
+## Optimization Changes
+
+- Improved file handling with context manager
+- Enhanced path operations using os.path.join for better cross-platform compatibility
+- More efficient file existence checks
+
+## Requirements
+
+- Python 3.x
+- pandas library
+
 This has only been tested on a mac running Python 3.11.3
 
 I used the decode of the ALE from https://gist.github.com/simonwagner/0ca407314bea9862ce6b15903fdcca87
